@@ -44,7 +44,8 @@ palettes/
   HANDOFF.md              ← this file
   src/
     build.py              ← generates ../index.html.  `cd src && python3 build.py`
-    base.html             ← the HTML/CSS/JS template build.py patches
+    check.py              ← asserts index.html is what build.py produces
+    template.html         ← THE PAGE. Hand-authored. Edit the HTML/CSS/JS here.
     engines.js            ← the Wikipedia + Wiktionary lookup layer, injected by build.py
     pal2.py               ← ALL SEVEN WORD DECKS live here. Edit this for content.
     pal_data.py           ← older deck source that pal2.py imports and reshapes
@@ -61,33 +62,44 @@ Verified: a clean `python3 build.py` reproduces the shipped `index.html` byte-fo
 
 ---
 
-## 3. ⚠️ Read this before touching build.py
+## 3. The build
 
-**`build.py` is a chain of ~25 literal string substitutions applied to `base.html`.**
-It is not a template engine. It grew incrementally across a long session and it is the
-most fragile thing in this bundle. It has already failed twice in real use:
+`build.py` reads `template.html` and fills **three named markers**:
 
-1. A research subagent overwrote the builder with its own scratch script.
-2. Several patches matched their own *search* strings (because the old and new text both
-   contained the same line), silently corrupting the next patch's pattern. Symptom:
-   `PATCH FAILED: render` on a subsequent run.
+| Marker | Filled from |
+|---|---|
+| `/*@INSTRUMENTS@*/` | `instruments.json` — the 1000 instruments |
+| `/*@WORDS@*/` | `pal2.py` + `wtitles.py`, via `decks()` |
+| `/*@ENGINES@*/` | `engines.js` — the Wikipedia/Wiktionary lookup layer |
 
-Mitigations already in place: every substitution asserts its target exists and exits
-loudly rather than silently no-op'ing. That is why failures are visible.
+Each marker must appear exactly once or the build exits, because a template that
+has drifted from the script would otherwise ship a page missing a deck or
+carrying two copies of the lookup layer.
 
-**Recommended first task in Claude Code: replace this with a real build.**
-`base.html` is itself a *generated* artifact (a frozen earlier build of the
-instruments-only page), which makes the current arrangement circular and hard to reason
-about. The clean version is roughly:
+`cd src && python3 build.py` writes `../index.html`. `python3 check.py` asserts
+that the shipped page is what the build produces — run it before committing,
+since the failure mode here is editing the generated `index.html` by hand and
+losing the work on the next build.
 
-- Promote `base.html` to a hand-authored `template.html` with explicit
-  `<!-- @DATA -->`, `<!-- @ENGINES -->` style placeholders.
-- Have `build.py` emit JSON + read `engines.js`, then substitute at those markers only.
-- Delete the substitution chain entirely.
+**This replaced a chain of thirteen literal string substitutions applied to a
+`base.html` that was itself a frozen earlier build of this page.** That
+arrangement had three problems, and all three are gone:
 
-This is maybe an hour of work and removes the only real landmine in the project.
+- The template was an *output*, which made the whole thing circular.
+- **The instruments deck could not be rebuilt at all.** `const DATA=[…]` was
+  baked into `base.html`, so `instruments.json` sat in the tree unread. It is
+  live source again.
+- Patches searched for prose they did not put there, so two of them could match
+  each other's search text and silently corrupt the next one's pattern. It had
+  already failed that way in real use. Nothing searches for arbitrary text now.
 
----
+`base.html` is deleted — it was generated, and keeping it would mean keeping it
+in sync with a template that has replaced it. It is in git history if needed.
+
+The rewrite was verified by reproducing the shipped 257 KB `index.html`
+**byte for byte**, then loading the result in a browser with the live APIs
+blocked and confirming all eight tabs and their counts (Emotions 611, Verbs 638,
+Genres 298).
 
 ## 4. Editing content
 
@@ -193,8 +205,10 @@ from pre-built titles, and the status pill reads
 
 ## 7. Testing
 
-The session used Playwright with a **mocked** Wikipedia/Wiktionary layer, which is the
-right approach — it makes tests fast, offline, and able to simulate failure modes
+`src/check.py` guards the build. Beyond that there is still no test suite.
+
+The session that built this used Playwright with a **mocked** Wikipedia/Wiktionary
+layer, which is the right approach — it makes tests fast, offline, and able to simulate failure modes
 (missing article, missing image, Title-Case 404, network down). Worth reconstructing:
 
 ```js
@@ -219,6 +233,7 @@ Cases that caught real bugs and are worth keeping:
   those numbers once it's live and fix the stragglers.
 - **`wtitles.py` covers 277 overrides.** Anything missed falls through to search. Once
   live, spot-check Theory/Production/Genres for words that land on the wrong article.
+- ~~Replace the substitution-chain build.~~ Done — see §3.
 - **The rhythm/composition checklist was never built.** This whole palette started as
   step one of a larger "music composition and production sheet" whose actual purpose was
   catching the habit of over-focusing on melody and forgetting rhythm. That deliverable

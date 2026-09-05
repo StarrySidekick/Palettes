@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Palettes — music mind-sweep</title>
+<style>
+:root{
+  --paper:#faf8f4; --ink:#1c1a17; --soft:#6f675c; --rule:#ded7ca;
+  --accent:#8a5a2b; --tint:#f1ece2; --card:#fffdf9; --shadow:rgba(40,30,15,.19);
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#14130f; --ink:#ece7dd; --soft:#9a9184; --rule:#302c25;
+  --accent:#d9a05f; --tint:#1d1b16; --card:#22201a; --shadow:rgba(0,0,0,.55);}}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);
+ font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+ font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 30px 60px}
+
+header{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:6px}
+.tabs{display:flex;flex-wrap:wrap;gap:5px;margin:11px 0 0}
+.tabs button{font:inherit;font-size:12.5px;padding:5px 12px;cursor:pointer;
+ background:transparent;color:var(--soft);border:1px solid var(--rule);border-radius:20px}
+.tabs button:hover{color:var(--ink)}
+.tabs button.on{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.blurb{font-size:12.5px;color:var(--soft);font-style:italic;margin:10px 0 0}
+.flatlist{break-inside:auto}
+.flatlist li{padding:0}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}
+.acts button{font:inherit;font-size:12.5px;padding:5px 13px;cursor:pointer;
+ background:transparent;color:var(--accent);border:1px solid var(--rule);border-radius:7px}
+.acts button:hover{background:var(--tint);border-color:var(--accent)}
+#tray{margin:12px 0 0;padding:9px 12px;border:1px dashed var(--accent);border-radius:8px;
+ display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#tray .pill{font-size:12px;background:var(--tint);border-radius:20px;padding:3px 9px;
+ display:inline-flex;gap:6px;align-items:center}
+#tray .pill i{cursor:pointer;font-style:normal;opacity:.5}
+#tray .pill i:hover{opacity:1;color:var(--accent)}
+#tray .tact{font:inherit;font-size:11.5px;background:none;border:0;color:var(--accent);
+ cursor:pointer;text-decoration:underline;padding:0}
+#tray .lbl2{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--soft)}
+#focus{position:fixed;inset:0;z-index:120;background:var(--paper);display:flex;
+ flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:40px;text-align:center}
+#focus[hidden]{display:none}
+#tray[hidden]{display:none}
+#focus .big{font-size:clamp(34px,7vw,76px);line-height:1.05;letter-spacing:-.02em;margin:0}
+#focus .cat{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);margin:0}
+#focus .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#focus button{font:inherit;font-size:13px;padding:7px 16px;cursor:pointer;background:transparent;
+ color:var(--accent);border:1px solid var(--rule);border-radius:8px}
+#roll .pairx{color:var(--soft);padding:0 6px}
+#roll .brow{display:block;margin:3px 0}
+#roll .bk{display:inline-block;min-width:118px;font-size:10.5px;letter-spacing:.1em;
+ text-transform:uppercase;color:var(--soft)}
+li.pinned a,li.pinned{color:var(--accent)!important;font-weight:600}
+li a.wt{cursor:default}
+#card .def{font-size:12.4px;line-height:1.45;margin:0;opacity:.88}
+#card .pos{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--soft);margin:0 0 3px}
+h1{font-size:27px;margin:0 0 3px;letter-spacing:-.015em;font-weight:600}
+.sub{color:var(--soft);font-size:13.5px;margin:0;font-style:italic}
+
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+ margin:14px 0 4px;padding-bottom:14px;border-bottom:1px solid var(--rule)}
+.seg{display:flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden}
+.seg button{font:inherit;font-size:12.5px;letter-spacing:.02em;
+ background:transparent;color:var(--soft);border:0;padding:6px 13px;cursor:pointer;
+ border-right:1px solid var(--rule)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--ink);color:var(--paper)}
+input[type=search]{font:inherit;font-size:12.5px;padding:6px 11px;flex:1;min-width:130px;
+ border:1px solid var(--rule);border-radius:7px;background:transparent;color:var(--ink)}
+input[type=search]::placeholder{color:var(--soft)}
+.dice{font:inherit;font-size:12.5px;padding:6px 13px;border:1px solid var(--rule);
+ border-radius:7px;background:transparent;color:var(--accent);cursor:pointer;white-space:nowrap}
+.dice:hover{background:var(--tint)}
+.count{font-size:12px;color:var(--soft);margin-left:auto;white-space:nowrap;
+ font-variant-numeric:tabular-nums}
+#status{font-size:11px;color:var(--soft);font-variant-numeric:tabular-nums;
+ border:1px solid var(--rule);border-radius:20px;padding:3px 10px;white-space:nowrap}
+#status.done{opacity:0;transition:opacity .8s .4s}
+#status.fail{color:var(--accent);border-color:var(--accent)}
+
+#roll{display:none;margin:12px 0 0;padding:11px 14px;background:var(--tint);
+ border-left:3px solid var(--accent);border-radius:0 6px 6px 0;font-size:14px}
+#roll b{color:var(--accent)}
+#roll .lbl{display:block;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+ color:var(--soft);margin-bottom:4px;font-style:normal}
+
+.groups{column-width:210px;column-gap:26px;margin-top:18px}
+.group{break-inside:avoid;page-break-inside:avoid;display:flow-root;width:100%;margin:0 0 15px}
+.group h2{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+ margin:0 0 5px;padding-bottom:3px;border-bottom:1px solid var(--rule);
+ color:var(--accent);font-weight:700;display:flex;justify-content:space-between;gap:6px}
+.group h2 span{color:var(--soft);font-weight:400;letter-spacing:.04em}
+.group .hint{font-size:11px;color:var(--soft);font-style:italic;margin:-1px 0 4px;line-height:1.3}
+ul{list-style:none;margin:0;padding:0}
+li{font-size:12.6px;line-height:1.34;padding:0}
+li a{color:inherit;text-decoration:none;border-bottom:1px solid transparent;
+ transition:border-color .12s,color .12s}
+li a:hover,li a:focus{color:var(--accent);border-bottom-color:var(--accent);outline:none}
+li.hit a{background:#ffe9a8;color:#1c1a17;border-radius:2px}
+li.dead a{color:var(--soft)}
+li .snd{display:inline-block;width:0;overflow:hidden;color:var(--accent);
+ font-size:10px;opacity:0;transition:opacity .25s;vertical-align:1px}
+li.aud .snd{width:auto;opacity:.62;margin-right:3px}
+li.aud a{}
+
+#card{position:fixed;z-index:99;width:266px;background:var(--card);
+ border:1px solid var(--rule);border-radius:9px;box-shadow:0 10px 34px var(--shadow);
+ padding:0;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(4px);
+ transition:opacity .13s ease,transform .13s ease}
+#card.show{pointer-events:auto}
+#card.show{opacity:1;transform:translateY(0)}
+#card .ph{width:100%;height:150px;background:var(--tint);display:block;
+ object-fit:cover;border-bottom:1px solid var(--rule)}
+#card .noimg{width:100%;height:44px;background:var(--tint);display:flex;
+ align-items:center;justify-content:center;font-size:10.5px;letter-spacing:.1em;
+ text-transform:uppercase;color:var(--soft);border-bottom:1px solid var(--rule)}
+#card .body{padding:10px 12px 11px}
+#card .t{font-size:14px;font-weight:600;margin:0 0 4px;line-height:1.25}
+#card .x{font-size:12.2px;line-height:1.42;color:var(--ink);margin:0;opacity:.86}
+#card .m{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--soft);
+ margin:7px 0 0;padding-top:6px;border-top:1px solid var(--rule)}
+#card .load{font-size:12px;color:var(--soft);font-style:italic}
+.sndbox{margin:9px 0 0;padding-top:8px;border-top:1px solid var(--rule)}
+.sndrow{display:flex;align-items:center;gap:8px}
+.pbtn{flex:0 0 auto;width:29px;height:29px;border-radius:50%;border:1px solid var(--accent);
+ background:transparent;color:var(--accent);cursor:pointer;font-size:11px;line-height:1;
+ display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit}
+.pbtn:hover{background:var(--accent);color:var(--card)}
+.pbtn[disabled]{opacity:.4;cursor:default}
+.pbtn.playing{background:var(--accent);color:var(--card)}
+.sndmeta{font-size:10.5px;line-height:1.35;color:var(--soft);min-width:0;flex:1}
+.sndmeta a{color:var(--soft);text-decoration:underline;text-decoration-color:var(--rule)}
+.sndmeta b{color:var(--ink);font-weight:600;display:block;font-size:11px;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nosnd{font-size:10.8px;color:var(--soft);line-height:1.4}
+.nosnd a{color:var(--accent)}
+.alt{font-size:10.3px;color:var(--soft);background:none;border:0;padding:2px 0 0;
+ cursor:pointer;text-decoration:underline;font-family:inherit}
+
+footer{margin-top:26px;padding-top:10px;border-top:1px solid var(--rule);
+ font-size:11.5px;color:var(--soft);line-height:1.5}
+
+@media print{
+  :root{--paper:#fff;--ink:#000;--soft:#555;--rule:#bbb;--accent:#000;--tint:#eee}
+  @page{margin:11mm 10mm}
+  body{font-size:8.6pt}
+  .wrap{max-width:none;padding:0}
+  .bar,.dice,#roll,#card,#status,#rej,li .snd,.tabs,.blurb,.acts,#tray,#focus{display:none!important}
+  header{margin-bottom:4px;padding-bottom:6px}
+  h1{font-size:15pt}.sub{font-size:8.5pt}
+  .groups{column-width:auto;column-count:5;column-gap:5mm;margin-top:6px}
+  .group{margin-bottom:3.5mm}
+  .group h2{font-size:6.6pt;margin-bottom:2px}
+  .group .hint{display:none}
+  li{font-size:7.5pt;line-height:1.22}
+  li a{color:#000;border:0}
+  footer{font-size:7pt}
+}
+</style></head><body><div class="wrap">
+
+<header>
+  <h1>Palettes</h1>
+  <p class="sub">Mind-sweep decks for making music. Switch decks when you're stuck in one dimension.</p>
+</header>
+
+<nav class="tabs" id="tabs"></nav>
+
+<div class="bar">
+  <div class="seg" id="seg">
+    <button data-k="f" class="on">By family</button>
+    <button data-k="r">By sonic role</button>
+    <button data-k="g">By tradition</button>
+  </div>
+  <input type="search" id="q" placeholder="find an instrument…">
+  <button class="dice" id="dice">Roll 3 &rarr;</button>
+  <button class="dice" id="rej" hidden>show rejected</button>
+  <span id="status">connecting to Wikipedia…</span>
+  <span class="count" id="count">&nbsp;</span>
+</div>
+
+<p class="blurb" id="blurb"></p>
+<div class="acts">
+  <button data-m="brief">Brief</button><button data-m="roll">Roll 3</button>
+  <button data-m="collide">Collide</button><button data-m="focus">Focus</button>
+  <button data-m="shuffle">Shuffle</button>
+</div>
+<div id="tray" hidden></div>
+<div id="roll"></div>
+<div id="focus" hidden></div>
+<div class="groups" id="out"></div>
+
+<footer>
+  Grouped three ways over the same set — switch the view to break a different habit.
+  Sonic role is a starting bias, not a rule: a cello can be bass, lead, pad or accent depending on how you write it.
+  Hover any name for its picture and Wikipedia's opening line; click to open the article.
+  <em>Roll 3</em> deals a random trio when you're stuck.
+</footer>
+
+</div>
+<div id="card" aria-hidden="true"></div>
+<script>
+const DATA=/*@INSTRUMENTS@*/;
+const ORDER={f:["Bowed Strings", "Plucked Strings", "Struck Strings", "Keyboards", "Free Reeds", "Flutes & Whistles", "Reeds", "Brass & Lip", "Tuned Percussion", "Drums", "Small Percussion", "Electronic", "Voice & Body"],r:["Lead", "Bass", "Chordal", "Drone/Pad", "Rhythm", "Texture", "Accent"],g:["Western Orchestral", "Western Folk & Pop", "European Folk", "Middle East & Central Asia", "South Asia", "East Asia", "Southeast Asia", "Africa", "Latin America", "Indigenous & Oceania", "Studio & Electronic"]};
+const HINT={"Lead": "carries the tune — the thing the ear follows", "Bass": "holds the floor — root motion and weight", "Chordal": "states the harmony — blocks, comping, voicings", "Drone/Pad": "sustains — a bed that doesn't move", "Rhythm": "drives the groove — pattern and pulse", "Texture": "colours the air — shimmer, grit, atmosphere", "Accent": "punctuates — hits, stabs, single moments"};
+const API='https://en.wikipedia.org/w/api.php';
+const INFO=Object.create(null);      // display name -> {title,extract,thumb,url,state}
+const TOTAL=DATA.length;
+let verified=false, showRej=false;
+/* The rule: a real Wikipedia article. A missing picture is not grounds for exclusion.
+   Until the page has actually checked (offline, or still loading) nothing is hidden —
+   we never drop an instrument on an unverified guess. */
+function passes(n){
+  if(!verified) return true;
+  const i=INFO[n];
+  return !!(i && i.state!=='fail');
+}
+const BYNAME=Object.create(null);
+DATA.forEach(d=>BYNAME[d.n]=d);
+let key='f', netOK=null;
+
+/* ---------- render ---------- */
+const wikiURL=t=>'https://en.wikipedia.org/wiki/'+encodeURIComponent(t.replace(/ /g,'_'));
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const WORD=/*@WORDS@*/;
+const DECKS=[['instruments','Instruments']].concat(
+  Object.keys(WORD).map(k=>[k,WORD[k].name]));
+let PAL='instruments';
+let PINS=[], shuf=0;
+const isInst=()=>PAL==='instruments';
+const curItems=()=>isInst()? DATA : WORD[PAL].items;
+const curKey =()=>isInst()? key : 'c';
+const curOrder=()=>isInst()? ORDER[key] : WORD[PAL].order;
+
+function render(){
+  const out=document.getElementById('out');
+  const K=curKey(), inst=isInst();
+  out.innerHTML='';
+  if(!inst && WORD[PAL].flat){          /* uncategorised deck — one list, flowing */
+    const items=arrange(curItems().slice());
+    out.innerHTML='<ul class="flatlist">'+items.map(d=>
+      '<li'+(PINS.includes(d.n)?' class="pinned"':'')+'><a class="wt" data-n="'+esc(d.n)+'">'+
+      esc(d.n)+'</a></li>').join('')+'</ul>';
+    filter(); return;
+  }
+  for(const g of curOrder()){
+    const items=curItems()
+      .filter(d=>d[K]===g && (inst? (showRej? !passes(d.n) : passes(d.n)) : !showRej));
+    arrange(items);
+    if(!items.length) continue;
+    const sec=document.createElement('section');
+    sec.className='group';
+    sec.innerHTML='<h2>'+g+' <span>'+items.length+'</span></h2>'+
+      (inst&&key==='r'&&HINT[g]?'<p class="hint">'+HINT[g]+'</p>':'')+
+      '<ul>'+items.map(d=>{
+        if(!inst){
+          const cl=PINS.includes(d.n)?' class="pinned"':'';
+          const lk=WORD[PAL].lk;
+          if(lk==='wp') return '<li'+cl+'><a href="'+wikiURL(d.w||d.n)+
+            '" target="_blank" rel="noopener" data-n="'+esc(d.n)+'">'+esc(d.n)+'</a></li>';
+          if(lk==='wt') return '<li'+cl+'><a class="wt" data-n="'+esc(d.n)+'">'+esc(d.n)+'</a></li>';
+          return '<li'+cl+'>'+esc(d.n)+'</li>';
+        }
+        const i=INFO[d.n];
+        const href=(i&&i.url)||wikiURL(d.w);
+        const c=[]; if(showRej)c.push('dead'); if(AUD[d.n]&&AUD[d.n].length)c.push('aud');
+        if(PINS.includes(d.n))c.push('pinned');
+        const cls=c.length?' class="'+c.join(' ')+'"':'';
+        return '<li'+cls+'><span class="snd" aria-hidden="true">\u266a</span>'+
+          '<a href="'+href+'" target="_blank" rel="noopener" data-n="'+esc(d.n)+'">'+esc(d.n)+'</a></li>';
+      }).join('')+'</ul>';
+    out.appendChild(sec);
+  }
+  filter();
+}
+
+/* shuffle: sweeping in random order breaks the alphabetical rut */
+function arrange(a){
+  if(shuf){ for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} }
+  else a.sort((x,y)=>x.n.localeCompare(y.n));
+  return a;
+}
+const pick=(arr,k)=>{const p=arr.slice(),o=[];
+  while(o.length<k&&p.length)o.push(p.splice((Math.random()*p.length)|0,1)[0]);return o};
+function deckItems(id){ return id==='instruments'? DATA.filter(d=>passes(d.n)) : WORD[id].items; }
+const tagOf=d=>(d.f? d.r.toLowerCase()+', '+d.f.toLowerCase() : (d.c||''));
+
+/* pin tray — collect scraps from any deck, then copy them out */
+function togglePin(n){
+  const i=PINS.indexOf(n); if(i<0)PINS.push(n); else PINS.splice(i,1);
+  drawTray(); render();
+}
+function drawTray(){
+  const t=document.getElementById('tray');
+  if(!PINS.length){ t.hidden=true; return; }
+  t.hidden=false;
+  t.innerHTML='<span class="lbl2">pinned</span>'+
+    PINS.map(n=>'<span class="pill"><b>'+esc(n)+'</b><i data-x="'+esc(n)+'">&times;</i></span>').join('')+
+    '<button class="tact" id="tcopy">copy</button><button class="tact" id="tclear">clear</button>';
+}
+document.addEventListener('click',e=>{
+  const x=e.target.closest('#tray i[data-x]'); if(x){ togglePin(x.dataset.x); return; }
+  if(e.target.id==='tcopy'){ try{navigator.clipboard.writeText(PINS.join(', '))}catch(err){}
+    e.target.textContent='copied'; setTimeout(()=>e.target.textContent='copy',1200); return; }
+  if(e.target.id==='tclear'){ PINS=[]; drawTray(); render(); return; }
+  const li=e.target.closest('#out li');
+  if(li&&!isInst()&&WORD[PAL].lk!=='wp') togglePin(li.textContent.trim());
+});
+
+function showRoll(html){ const r=document.getElementById('roll');
+  r.style.display='block'; r.innerHTML=html; }
+const fmt=d=>{const t=tagOf(d);
+  return '<b>'+esc(d.n)+'</b>'+(t?' <span style="opacity:.65">('+esc(t)+')</span>':'');};
+function modeRoll(){ const p=pick(deckItems(PAL),3);
+  showRoll('<span class="lbl">try building around these three</span>'+p.map(fmt).join(' &nbsp;&middot;&nbsp; ')); }
+function modeCollide(){ const p=pick(deckItems(PAL),2); if(p.length<2)return;
+  showRoll('<span class="lbl">force these two together</span>'+fmt(p[0])+'<span class="pairx">&times;</span>'+fmt(p[1])); }
+/* Brief: one draw from every deck at once — a whole starting point, not a word */
+function modeBrief(){
+  const rows=DECKS.map(([id,label])=>{ const it=pick(deckItems(id),1)[0]; if(!it)return '';
+    return '<span class="brow"><span class="bk">'+esc(label)+'</span><b>'+esc(it.n)+'</b></span>'; }).join('');
+  showRoll('<span class="lbl">one brief, drawn from every deck</span>'+rows);
+}
+let focusCur=null;
+function modeFocus(){
+  const f=document.getElementById('focus'), d=pick(deckItems(PAL),1)[0]; if(!d)return;
+  focusCur=d.n; f.hidden=false;
+  f.innerHTML='<p class="cat">'+esc(tagOf(d)||(WORD[PAL]?WORD[PAL].name:''))+'</p>'+
+    '<p class="big">'+esc(d.n)+'</p><div class="row">'+
+    '<button data-f="next">Another</button><button data-f="pin">'+
+    (PINS.includes(d.n)?'Unpin':'Pin')+'</button><button data-f="close">Close</button></div>'+
+    '<p class="cat" style="opacity:.6">N another &nbsp; P pin &nbsp; Esc close</p>';
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('#focus button'); if(!b)return;
+  if(b.dataset.f==='next') modeFocus();
+  else if(b.dataset.f==='pin'){ togglePin(focusCur); modeFocus(); }
+  else document.getElementById('focus').hidden=true;
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.acts button'); if(!b)return;
+  const m=b.dataset.m;
+  if(m==='roll')modeRoll(); else if(m==='collide')modeCollide();
+  else if(m==='brief')modeBrief(); else if(m==='focus')modeFocus();
+  else { shuf=!shuf; b.textContent=shuf?'Unshuffle':'Shuffle'; render(); }
+});
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  const f=document.getElementById('focus');
+  if(e.key==='Escape'){ f.hidden=true; hide(); }
+  else if(!f.hidden&&/^[nN]$/.test(e.key)) modeFocus();
+  else if(!f.hidden&&/^[pP]$/.test(e.key)){ togglePin(focusCur); modeFocus(); }
+  else if(/^[rR]$/.test(e.key)) modeRoll();
+  else if(/^[bB]$/.test(e.key)) modeBrief();
+});
+
+/* deck switching: the Wikipedia/audio machinery belongs to the instrument deck only,
+   so the word decks render instantly and hide the controls that mean nothing to them. */
+function buildTabs(){
+  const t=document.getElementById('tabs');
+  t.innerHTML=DECKS.map(([id,label])=>
+    '<button data-p="'+id+'"'+(id===PAL?' class="on"':'')+'>'+esc(label)+'</button>').join('');
+}
+function selectPalette(p){
+  PAL=p; showRej=false; key='f';
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+  const inst=isInst();
+  document.getElementById('seg').style.display=inst?'':'none';
+  document.getElementById('status').style.display=inst?'':'none';
+  const rb=document.getElementById('rej');
+  rb.style.display=inst?'':'none';
+  if(inst) rb.textContent='show '+((window.__UNRESOLVED__||[]).length)+' with no article';
+  document.querySelectorAll('#seg button').forEach((b,i)=>b.classList.toggle('on',i===0));
+  document.getElementById('blurb').textContent=inst
+    ? 'Every entry is checked against Wikipedia on load; anything with no article is dropped. Hover for a picture, the opening line, and a recording where one exists.'
+    : WORD[p].blurb;
+  document.getElementById('q').value='';
+  document.getElementById('roll').style.display='none';
+  document.getElementById('focus').hidden=true;
+  shuf=0; const sb=document.querySelector('.acts button[data-m="shuffle"]');
+  if(sb) sb.textContent='Shuffle';
+  hide(); render(); scrollTo(0,0);
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('#tabs button'); if(b) selectPalette(b.dataset.p);
+});
+function filter(){
+  const v=document.getElementById('q').value.trim().toLowerCase();
+  let n=0;
+  document.querySelectorAll('#out li').forEach(li=>{
+    const hit=v&&li.textContent.toLowerCase().includes(v);
+    li.classList.toggle('hit',!!hit); if(hit)n++;
+  });
+  const shown=document.querySelectorAll('#out li').length;
+  document.getElementById('count').textContent =
+    v? (n+' match'+(n===1?'':'es')) : (shown+(isInst()?' instruments':' entries'));
+}
+
+/* ---------- wikipedia ---------- */
+function jsonp(params){                     // CORS first, JSONP fallback for file:// origins
+  const url=API+'?'+new URLSearchParams({...params,format:'json',origin:'*'});
+  return fetch(url).then(r=>{if(!r.ok)throw 0;return r.json()});
+}
+function applyPages(js,requested){
+  // build requested-title -> final-title chain
+  const chain={};
+  (js.query&&js.query.normalized||[]).forEach(n=>chain[n.from]=n.to);
+  const red={};
+  (js.query&&js.query.redirects||[]).forEach(r=>red[r.from]=r.to);
+  const pages=(js.query&&js.query.pages)||{};
+  const byTitle={};
+  Object.values(pages).forEach(p=>byTitle[p.title]=p);
+  const miss=[];
+  requested.forEach(name=>{
+    const d=BYNAME[name];
+    let t=d.w; if(chain[t])t=chain[t]; if(red[t])t=red[t];
+    const p=byTitle[t];
+    if(!p||p.missing!==undefined){miss.push(name);return}
+    INFO[name]={title:p.title,url:wikiURL(p.title),
+      extract:(p.extract||'').trim(),
+      thumb:p.thumbnail&&p.thumbnail.source||'', state:'ok'};
+  });
+  return miss;
+}
+async function batch(names){
+  const js=await jsonp({action:'query',prop:'extracts|pageimages',exintro:'1',
+    explaintext:'1',exsentences:'2',piprop:'thumbnail',pithumbsize:'420',
+    redirects:'1',titles:names.map(n=>BYNAME[n].w).join('|')});
+  return applyPages(js,names);
+}
+async function repair(name){
+  try{
+    const js=await jsonp({action:'query',generator:'search',
+      gsrsearch:name+' musical instrument',gsrlimit:'1',
+      prop:'extracts|pageimages',exintro:'1',explaintext:'1',exsentences:'2',
+      piprop:'thumbnail',pithumbsize:'420'});
+    const p=Object.values((js.query&&js.query.pages)||{})[0];
+    if(!p)throw 0;
+    INFO[name]={title:p.title,url:wikiURL(p.title),extract:(p.extract||'').trim(),
+      thumb:p.thumbnail&&p.thumbnail.source||'',state:'repaired'};
+  }catch(e){ INFO[name]={state:'fail'} }
+}
+async function loadAll(){
+  const st=document.getElementById('status');
+  const names=DATA.map(d=>d.n), chunks=[];
+  for(let i=0;i<names.length;i+=20) chunks.push(names.slice(i,i+20));
+  let done=0, misses=[], failed=0;
+  const worker=async q=>{ while(q.length){ const c=q.shift();
+    try{ misses.push(...await batch(c)) }catch(e){ failed+=c.length }
+    done+=c.length; st.textContent='checking articles… '+done+'/'+TOTAL; } };
+  const queue=[...chunks];
+  await Promise.all([worker(queue),worker(queue),worker(queue),worker(queue)]);
+  if(failed>=names.length){
+    netOK=false;
+    st.className='fail';
+    st.textContent='no Wikipedia access here — links still work';
+    return;
+  }
+  netOK=true;
+  for(const m of misses) await repair(m);
+  verified=true;
+  const noArt=DATA.filter(d=>!INFO[d.n]||INFO[d.n].state==='fail').map(d=>d.n);
+  const noPic=[];   // pictures optional — kept only so the counters still line up
+  window.__UNRESOLVED__=noArt; window.__NOPIC__=noPic;
+  window.__KEPT__=DATA.filter(d=>passes(d.n)).length;
+  window.__RESOLVED__=Object.fromEntries(DATA.map(d=>[d.n,INFO[d.n]&&INFO[d.n].title||null]));
+  const rejN=noArt.length, rb=document.getElementById('rej');
+  if(rejN){ rb.hidden=false; rb.textContent='show '+rejN+' with no article'; }
+  render();
+  st.textContent='looking for recordings…';
+  const aq=[...chunks];
+  const aw=async q=>{ while(q.length){ const c=q.shift();
+    try{ await discoverAudio(c) }catch(e){} } };
+  await Promise.all([aw(aq),aw(aq),aw(aq)]);
+  const withAudio=Object.keys(AUD).length;
+  window.__AUDIO__=AUD;
+  st.className='done';
+  st.textContent=window.__KEPT__+' kept · '+withAudio+' with sound';
+  render();
+}
+
+
+/* ---------- audio discovery (Wikimedia Commons) ---------- */
+const AUD=Object.create(null);      // name -> [File:... titles], ranked
+const FILE=Object.create(null);     // File:title -> {url,mp3,page,artist,lic}
+const AUDEXT=/\.(ogg|oga|opus|flac|wav|mp3|m4a|webm)$/i;
+/* Spoken-Wikipedia narrations and Lingua Libre / IPA pronunciation clips live on
+   these same articles and are NOT the instrument. Reject them outright. */
+const JUNK=[/^File:LL-/i,/^File:Q\d+/i,/spoken/i,/wikipedia/i,/pronunciation/i,
+  /^File:[a-z]{2}(-[a-z]{2,3})?-[^.]*\.(ogg|oga|wav|mp3)$/i,/\bipa\b/i,
+  /loudspeaker/i,/audio[-_ ]?icon/i,/^File:En-/i,/text[-_ ]?to[-_ ]?speech/i];
+const GOOD=/(sample|solo|playing|played|demo|scale|excerpt|improvis|melody|tune|music|sound|note|riff|performance|recording)/i;
+
+function rankAudio(name,files){
+  const toks=name.toLowerCase().replace(/[^a-z ]/g,'').split(/\s+/).filter(t=>t.length>3);
+  return files
+    .filter(f=>AUDEXT.test(f) && !JUNK.some(j=>j.test(f)))
+    .map(f=>{
+      const l=f.toLowerCase(); let s=0;
+      if(toks.some(t=>l.includes(t))) s+=3;
+      if(GOOD.test(l)) s+=1;
+      if(/\.(ogg|oga|flac|wav)$/i.test(f)) s+=0.2;
+      return {f,s};
+    })
+    .sort((a,b)=>b.s-a.s).slice(0,3).map(o=>o.f);
+}
+async function discoverAudio(names){
+  let cont=null, pages={};
+  do{
+    const p={action:'query',prop:'images',imlimit:'500',redirects:'1',
+             titles:names.map(n=>BYNAME[n].w).join('|')};
+    if(cont)Object.assign(p,cont);
+    const js=await jsonp(p);
+    Object.values((js.query&&js.query.pages)||{}).forEach(pg=>{
+      if(!pg.images)return;
+      pages[pg.title]=(pages[pg.title]||[]).concat(pg.images.map(i=>i.title));
+    });
+    cont=js.continue||null;
+  } while(cont);
+  names.forEach(n=>{
+    const t=(INFO[n]&&INFO[n].title)||BYNAME[n].w;
+    const hits=rankAudio(n,pages[t]||[]);
+    if(hits.length) AUD[n]=hits;
+  });
+}
+function mp3of(url){
+  const m=url.match(/^(https:\/\/upload\.wikimedia\.org\/wikipedia\/[^/]+\/)([0-9a-f]\/[0-9a-f]{2}\/)(.+)$/);
+  if(!m||/\.mp3$/i.test(m[3]))return null;
+  return m[1]+'transcoded/'+m[2]+m[3]+'/'+m[3]+'.mp3';
+}
+const strip=h=>{const d=document.createElement('div');d.innerHTML=h||'';
+  return (d.textContent||'').trim().replace(/\s+/g,' ').slice(0,70)};
+async function resolveFiles(titles){
+  const want=titles.filter(t=>!FILE[t]); if(!want.length)return;
+  const js=await jsonp({action:'query',prop:'imageinfo',
+    iiprop:'url|mime|extmetadata',titles:want.join('|')});
+  Object.values((js.query&&js.query.pages)||{}).forEach(p=>{
+    const ii=p.imageinfo&&p.imageinfo[0]; if(!ii)return;
+    const em=ii.extmetadata||{};
+    FILE[p.title]={url:ii.url,mp3:mp3of(ii.url),page:ii.descriptionurl,
+      artist:strip(em.Artist&&em.Artist.value),
+      lic:strip(em.LicenseShortName&&em.LicenseShortName.value)};
+  });
+}
+
+/*@ENGINES@*/
+const card=document.getElementById('card');
+let hoverT=null, hideT=null, cur=null, curEl=null, altIdx=0;
+const player=new Audio(); player.preload='none';
+
+function place(el){
+  const r=el.getBoundingClientRect(), w=266, h=card.offsetHeight||230;
+  let x=r.right+12; if(x+w>innerWidth-8) x=Math.max(8,r.left-w-12);
+  let y=r.top-8; if(y+h>innerHeight-8) y=Math.max(8,innerHeight-h-8);
+  card.style.left=x+'px'; card.style.top=y+'px';
+}
+
+/* ---- sound block ---- */
+function sndHTML(name){
+  const list=AUD[name];
+  if(!list||!list.length){
+    const q=encodeURIComponent('filetype:audio '+name);
+    return '<div class="sndbox"><p class="nosnd">No recording on Wikimedia Commons for this one — '+
+      '<a href="https://commons.wikimedia.org/w/index.php?search='+q+'&ns6=1" target="_blank" rel="noopener">search Commons</a>.</p></div>';
+  }
+  const t=list[altIdx%list.length], f=FILE[t];
+  const label=t.replace(/^File:/,'').replace(/_/g,' ').replace(/\.[a-z0-9]+$/i,'');
+  const credit=f? [f.artist,f.lic].filter(Boolean).join(' · ') : 'loading…';
+  const link=f&&f.page? '<a href="'+f.page+'" target="_blank" rel="noopener">Commons</a>' : '';
+  return '<div class="sndbox"><div class="sndrow">'+
+    '<button class="pbtn" id="pb"'+(f?'':' disabled')+' aria-label="play">&#9654;</button>'+
+    '<span class="sndmeta"><b title="'+esc(label)+'">'+esc(label)+'</b>'+esc(credit)+
+    (link?' · '+link:'')+'</span></div>'+
+    (list.length>1?'<button class="alt" id="alt">another take ('+((altIdx%list.length)+1)+'/'+list.length+')</button>':'')+
+    '</div>';
+}
+function paint(name){
+  const d=BYNAME[name], i=INFO[name];
+  const meta=d.f+' · '+d.r+' · '+d.g;
+  let head='', body='';
+  if(!i){ head='<div class="noimg">loading…</div>';
+          body='<p class="t">'+esc(name)+'</p><p class="load">fetching from Wikipedia…</p>'; }
+  else if(i.state==='fail'){ head='<div class="noimg">no article found</div>';
+          body='<p class="t">'+esc(name)+'</p><p class="x">Wikipedia didn\'t return a match — try searching it by hand.</p>'; }
+  else { head=i.thumb? '<img class="ph" src="'+i.thumb+'" alt="">' : '<div class="noimg">no image on Wikipedia</div>';
+         body='<p class="t">'+esc(i.title)+'</p><p class="x">'+esc(i.extract||'No summary available.')+'</p>'; }
+  card.innerHTML=head+'<div class="body">'+body+sndHTML(name)+'<p class="m">'+esc(meta)+' &nbsp;<button class="alt" id="pin">'+
+      (PINS.includes(name)?'unpin':'pin')+'</button></p></div>';
+  const pb=card.querySelector('#pb');
+  if(pb) pb.onclick=()=>toggle(name);
+  const pn=card.querySelector('#pin');
+  if(pn) pn.onclick=()=>{ togglePin(name); paint(name); if(curEl)place(curEl); };
+  const alt=card.querySelector('#alt');
+  if(alt) alt.onclick=async()=>{ altIdx++; stop(); await ensureFile(name); if(cur===name){paint(name); if(curEl)place(curEl);} };
+  if(!player.paused && player.dataset.name===name && pb) pb.classList.add('playing');
+}
+async function ensureFile(name){
+  const list=AUD[name]; if(!list||!list.length)return;
+  const t=list[altIdx%list.length];
+  if(!FILE[t]){ try{ await resolveFiles([t]) }catch(e){} }
+}
+function stop(){ try{player.pause()}catch(e){} }
+function toggle(name){
+  const t=AUD[name][altIdx%AUD[name].length], f=FILE[t]; if(!f)return;
+  const pb=card.querySelector('#pb');
+  if(!player.paused && player.dataset.name===name){ stop(); return; }
+  stop();
+  player.dataset.name=name;
+  /* Safari can't decode Ogg Vorbis; Commons auto-transcodes to mp3 — try that first,
+     fall back to the original file if no transcode exists. */
+  const srcs=[f.mp3,f.url].filter(Boolean);
+  let k=0;
+  const tryNext=()=>{ if(k>=srcs.length){ if(pb){pb.classList.remove('playing');pb.textContent='—';} return; }
+    player.src=srcs[k++]; player.play().catch(tryNext); };
+  const reset=()=>{const b=card.querySelector('#pb');
+    if(b){b.classList.remove('playing');b.innerHTML='&#9654;'}};
+  player.onerror=tryNext; player.onended=reset; player.onpause=reset;
+  player.onplaying=()=>{const b=card.querySelector('#pb');
+    if(b){b.classList.add('playing');b.innerHTML='&#9632;'}};
+  tryNext();
+}
+
+async function show(el){
+  clearTimeout(hideT);
+  const name=el.dataset.n;
+  if(cur!==name) altIdx=0;
+  cur=name; curEl=el;
+  if(!isInst()){
+    const lk=WORD[PAL].lk; if(!lk) return;
+    paintWord(name); card.classList.add('show'); card.setAttribute('aria-hidden','false'); place(el);
+    if(!CARD2[ckey(PAL,name)]){
+      await (lk==='wp'? lookupWP(name) : lookupWT(name));
+      if(cur===name){ paintWord(name); place(el);
+        const c=CARD2[ckey(PAL,name)]; if(c&&c.url&&el.tagName==='A'&&lk==='wp') el.href=c.url; }
+    }
+    return;
+  }
+  paint(name); card.classList.add('show'); card.setAttribute('aria-hidden','false'); place(el);
+  if(!INFO[name] && netOK!==false){
+    await repair(name);
+    if(cur===name){ paint(name); place(el); if(INFO[name].url) el.href=INFO[name].url; }
+  }
+  if(AUD[name] && !FILE[AUD[name][0]]){
+    await ensureFile(name);
+    if(cur===name){ paint(name); place(el); }
+  }
+  requestAnimationFrame(()=>{ if(cur===name&&curEl)place(curEl) });
+}
+function hide(){ cur=null; curEl=null; card.classList.remove('show'); card.setAttribute('aria-hidden','true'); stop(); }
+function hideSoon(){ clearTimeout(hideT); hideT=setTimeout(hide,220); }
+
+document.addEventListener('mouseover',e=>{
+  const a=e.target.closest('#out li a'); if(!a)return;
+  clearTimeout(hoverT); clearTimeout(hideT);
+  hoverT=setTimeout(()=>show(a),110);
+});
+document.addEventListener('mouseout',e=>{
+  if(!e.target.closest('#out li a'))return;
+  clearTimeout(hoverT); hideSoon();
+});
+card.addEventListener('mouseenter',()=>clearTimeout(hideT));
+card.addEventListener('mouseleave',hideSoon);
+document.addEventListener('focusin',e=>{ const a=e.target.closest('#out li a'); if(a)show(a) });
+addEventListener('scroll',()=>{
+  if(!curEl)return;
+  const r=curEl.getBoundingClientRect();
+  if(r.bottom<0||r.top>innerHeight) hide(); else place(curEl);
+},{passive:true});
+
+/* ---------- controls ---------- */
+document.getElementById('seg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#seg button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); key=b.dataset.k; render();
+});
+document.getElementById('q').addEventListener('input',filter);
+document.getElementById('rej').addEventListener('click',e=>{
+  showRej=!showRej;
+  const n=(window.__UNRESOLVED__||[]).length;
+  e.target.textContent=showRej?'back to the list':('show '+n+' with no article');
+  render();
+});
+document.getElementById('dice').addEventListener('click',()=>{
+  const p=[...curItems()],pick=[];
+  while(pick.length<3&&p.length) pick.push(p.splice(Math.floor(Math.random()*p.length),1)[0]);
+  const r=document.getElementById('roll');
+  r.style.display='block';
+  r.innerHTML='<span class="lbl">try building around these three</span>'+
+    pick.map(d=>'<b>'+esc(d.n)+'</b> <span style="opacity:.65">('+
+      esc(isInst()? d.r.toLowerCase()+', '+d.f.toLowerCase() : d.c.toLowerCase())+')</span>')
+      .join(' &nbsp;·&nbsp; ');
+});
+
+buildTabs(); selectPalette('instruments'); loadAll();
+</script></body></html>
