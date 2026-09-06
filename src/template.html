@@ -142,6 +142,49 @@ li.aud a{}
 footer{margin-top:26px;padding-top:10px;border-top:1px solid var(--rule);
  font-size:11.5px;color:var(--soft);line-height:1.5}
 
+/* ---- A phone at the piano, which is what this is actually for. ----
+   Two things break on touch and neither of them is cosmetic. There is no hover,
+   so the card can never be summoned the way a desk summons it; and place() puts
+   the card beside a pointer that does not exist. So on a narrow screen the card
+   stops being a 266px box next to a word and becomes a sheet along the bottom,
+   where there is room for the picture and the paragraph and it cannot land
+   off-screen. */
+@media (max-width:640px){
+  .wrap{padding:20px 15px 46px}
+  h1{font-size:23px}
+  .sub{font-size:13px}
+  .groups{columns:1;column-width:auto;margin-top:14px}
+  .group{margin:0 0 20px}
+  /* The list is the whole interface, so a word has to be a target as well as a
+     word. 12.6px of serif is not hittable with a thumb. */
+  /* The row is a flex line, not a block anchor beside an inline marker: as a
+     block the <a> pushed .snd onto an anonymous line of its own and every row
+     carried about 18px of dead height. */
+  li{display:flex;align-items:center;font-size:15.5px;line-height:1.2}
+  li a{flex:1 1 auto;padding:8px 2px}
+  li .snd{flex:0 0 auto}
+  .bar{gap:6px;padding-bottom:11px}
+  .count{margin-left:0}
+  /* Under 16px iOS zooms the whole page when the field takes focus, and you
+     lose your place in the list you were reading. */
+  input[type=search]{flex:1 1 100%;min-width:0;font-size:16px}
+  .seg button,.tabs button,.acts button,.dice{padding:8px 13px}
+  #focus{padding:24px 18px}
+
+  #card{left:0;right:0;top:auto;bottom:0;width:auto;max-height:56vh;
+   overflow-y:auto;border-radius:13px 13px 0 0;border-left:0;border-right:0;
+   border-bottom:0;box-shadow:0 -9px 34px var(--shadow);transform:translateY(14px);
+   padding-bottom:env(safe-area-inset-bottom)}
+  #card.show{transform:translateY(0)}
+  /* A grab bar, so the sheet reads as something you dismiss. Sticky, or it
+     scrolls away with the picture. */
+  #card::before{content:"";position:sticky;top:0;z-index:2;display:block;
+   height:15px;background:var(--card);
+   background-image:linear-gradient(var(--rule),var(--rule));
+   background-size:34px 3px;background-repeat:no-repeat;background-position:center 6px}
+  #card .ph{height:34vw;max-height:180px}
+}
+
 @media print{
   :root{--paper:#fff;--ink:#000;--soft:#555;--rule:#bbb;--accent:#000;--tint:#eee}
   @page{margin:11mm 10mm}
@@ -194,7 +237,7 @@ footer{margin-top:26px;padding-top:10px;border-top:1px solid var(--rule);
 <footer>
   Grouped three ways over the same set — switch the view to break a different habit.
   Sonic role is a starting bias, not a rule: a cello can be bass, lead, pad or accent depending on how you write it.
-  Hover any name for its picture and Wikipedia's opening line; click to open the article.
+  Hover any name for its picture and Wikipedia's opening line; click to open the article. On a phone, tap once for the card and again to open it.
   <em>Roll 3</em> deals a random trio when you're stuck.
 </footer>
 
@@ -374,7 +417,9 @@ function selectPalette(p){
   if(inst) rb.textContent='show '+((window.__UNRESOLVED__||[]).length)+' with no article';
   document.querySelectorAll('#seg button').forEach((b,i)=>b.classList.toggle('on',i===0));
   document.getElementById('blurb').textContent=inst
-    ? 'Every entry is checked against Wikipedia on load; anything with no article is dropped. Hover for a picture, the opening line, and a recording where one exists.'
+    ? 'Every entry is checked against Wikipedia on load; anything with no article is dropped. '
+      + (mqTouch.matches ? 'Tap' : 'Hover')
+      + ' for a picture, the opening line, and a recording where one exists.'
     : WORD[p].blurb;
   document.getElementById('q').value='';
   document.getElementById('roll').style.display='none';
@@ -550,7 +595,12 @@ const card=document.getElementById('card');
 let hoverT=null, hideT=null, cur=null, curEl=null, altIdx=0;
 const player=new Audio(); player.preload='none';
 
+const mqSheet=matchMedia('(max-width:640px)');
+const mqTouch=matchMedia('(hover:none)');
 function place(el){
+  /* In sheet mode CSS pins the card to the bottom of the screen, and a
+     pointer-relative position would only fight it. */
+  if(mqSheet.matches){ card.style.left=''; card.style.top=''; return; }
   const r=el.getBoundingClientRect(), w=266, h=card.offsetHeight||230;
   let x=r.right+12; if(x+w>innerWidth-8) x=Math.max(8,r.left-w-12);
   let y=r.top-8; if(y+h>innerHeight-8) y=Math.max(8,innerHeight-h-8);
@@ -651,18 +701,55 @@ async function show(el){
 function hide(){ cur=null; curEl=null; card.classList.remove('show'); card.setAttribute('aria-hidden','true'); stop(); }
 function hideSoon(){ clearTimeout(hideT); hideT=setTimeout(hide,220); }
 
+/* A tap on a touch screen still synthesises a whole mouse sequence, and the
+   mouseout at the end of it arrives before the click does — so the hover path
+   would open the card and shut it again in the same gesture, and the tap
+   handler below had nothing left to show. On a device that cannot hover,
+   hover does not drive the card. */
 document.addEventListener('mouseover',e=>{
+  if(mqTouch.matches) return;
   const a=e.target.closest('#out li a'); if(!a)return;
   clearTimeout(hoverT); clearTimeout(hideT);
   hoverT=setTimeout(()=>show(a),110);
 });
 document.addEventListener('mouseout',e=>{
+  if(mqTouch.matches) return;
   if(!e.target.closest('#out li a'))return;
   clearTimeout(hoverT); hideSoon();
 });
 card.addEventListener('mouseenter',()=>clearTimeout(hideT));
-card.addEventListener('mouseleave',hideSoon);
-document.addEventListener('focusin',e=>{ const a=e.target.closest('#out li a'); if(a)show(a) });
+card.addEventListener('mouseleave',()=>{ if(!mqTouch.matches) hideSoon(); });
+/* A phone has no hover, and every name is an anchor — so a tap used to leave for
+   Wikipedia without ever showing the card the tap was asking about, which is the
+   one thing this page is for. First tap explains, second tap opens. Anywhere
+   else dismisses, the way a sheet should. */
+document.addEventListener('click',e=>{
+  if(!mqTouch.matches) return;
+  const a=e.target.closest('#out li a');
+  if(!a){ if(cur && !e.target.closest('#card')) hide(); return; }
+  /* No href means nothing to navigate to and the click belongs to pinning. */
+  if(!a.getAttribute('href')) return;
+  if(cur===a.dataset.n && card.classList.contains('show')) return;   /* asked twice: go */
+  e.preventDefault();
+  show(a);
+  requestAnimationFrame(()=>keepClear(a));
+});
+/* The sheet takes the bottom of the screen, so a word low in the list would sit
+   underneath the thing explaining it — and the second tap would have nothing to
+   land on. Lift it above the sheet instead. */
+function keepClear(el){
+  if(!mqSheet.matches) return;
+  const top=innerHeight-card.offsetHeight, r=el.getBoundingClientRect();
+  if(r.bottom>top-10) scrollBy({top:r.bottom-top+18,behavior:'smooth'});
+}
+/* Keyboard focus should open the card; a touch mousedown should not. It focuses
+   the anchor before the click lands, the sheet opens across the word being
+   tapped, mouseup falls on the card instead, and the click is never delivered —
+   which looked exactly like the tap handler being broken. */
+document.addEventListener('focusin',e=>{
+  if(mqTouch.matches) return;
+  const a=e.target.closest('#out li a'); if(a)show(a);
+});
 addEventListener('scroll',()=>{
   if(!curEl)return;
   const r=curEl.getBoundingClientRect();
