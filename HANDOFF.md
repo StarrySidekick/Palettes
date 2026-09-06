@@ -1,5 +1,11 @@
 # Palettes — handoff to Claude Code
 
+> **Read [`INTENT.md`](INTENT.md) first.** It records what this project is for
+> and what Timothy wants next, in his own words, dated. Where it disagrees with
+> this file about *direction* it is newer and wins; where it disagrees about
+> *mechanics* — how the code works, what was decided deliberately, the
+> invariants — this file wins.
+
 A single-page music brainstorming tool: eight switchable decks of words and instruments,
 each of which explains itself on hover by calling Wikipedia / Wiktionary from the
 viewer's browser. Built in a Cowork session; this bundle is everything needed to host it
