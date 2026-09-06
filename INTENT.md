@@ -25,9 +25,19 @@ Two concrete things, both his:
 a phone in hand.** This is the single most useful change available in this repo,
 and the page is currently a desktop page.
 
-**2. A piano practice mode.** Shuffles scales, modes and keys, plus other random
-things to practise. He described this unprompted, which makes it the clearest
-feature ask here.
+**2. A piano practice mode.** ~~Shuffles scales, modes and keys, plus other
+random things to practise.~~ **Built 2026-09-06** — the *Practise* button, or `T`
+from the list, `N` for another. It deals a key, a scale or mode, something to do
+with it, and about four times in seven a constraint that changes how it feels.
+Twelve keys with practical spellings, twenty scales, twenty tasks, eleven
+twists. It belongs to no deck, because what you sit down to practise has nothing
+to do with which words you were sweeping, and nothing is stored, because a
+practice card you have to keep is a chore list.
+
+What it does not do yet, if this wants going further: it cannot hear you, it
+does not know what you practised last week, and it has no notion of difficulty
+— so it will hand a beginner the altered scale in G flat. Any of those would be
+a real next step; none is obviously wanted yet.
 
 ## Do not forget the build
 

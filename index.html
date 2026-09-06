@@ -48,6 +48,12 @@ header{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:6px}
 #focus .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 #focus button{font:inherit;font-size:13px;padding:7px 16px;cursor:pointer;background:transparent;
  color:var(--accent);border:1px solid var(--rule);border-radius:8px}
+/* The practice card is three sizes of one idea: what to play, what to do with
+   it, and one constraint that changes how it feels. */
+#focus .task{font-size:clamp(15px,2.7vw,21px);line-height:1.4;margin:0;max-width:23em;color:var(--ink)}
+#focus .twist{font-size:12.5px;color:var(--soft);margin:0;font-style:italic;max-width:23em}
+#focus .twist b{font-style:normal;font-weight:600;letter-spacing:.09em;
+ text-transform:uppercase;font-size:10.5px;color:var(--accent);display:block;margin-bottom:2px}
 #roll .pairx{color:var(--soft);padding:0 6px}
 #roll .brow{display:block;margin:3px 0}
 #roll .bk{display:inline-block;min-width:118px;font-size:10.5px;letter-spacing:.1em;
@@ -227,7 +233,7 @@ footer{margin-top:26px;padding-top:10px;border-top:1px solid var(--rule);
 <div class="acts">
   <button data-m="brief">Brief</button><button data-m="roll">Roll 3</button>
   <button data-m="collide">Collide</button><button data-m="focus">Focus</button>
-  <button data-m="shuffle">Shuffle</button>
+  <button data-m="practise">Practise</button><button data-m="shuffle">Shuffle</button>
 </div>
 <div id="tray" hidden></div>
 <div id="roll"></div>
@@ -367,6 +373,68 @@ function modeBrief(){
   showRoll('<span class="lbl">one brief, drawn from every deck</span>'+rows);
 }
 let focusCur=null;
+/* ---------- the practice card ----------
+   A different thing from the word decks: it deals an assignment rather than a
+   prompt, and it belongs to no deck, because what you sit down to practise has
+   nothing to do with which words you were sweeping. Same surface, same gesture.
+   Nothing is stored — a practice card you have to keep is a chore list. */
+const KEYS=['C','D\u266d','D','E\u266d','E','F','F\u266f','G','A\u266d','A','B\u266d','B'];
+const SCALES=[
+  'major','natural minor','harmonic minor','melodic minor',
+  'Dorian','Phrygian','Lydian','Mixolydian','Locrian',
+  'major pentatonic','minor pentatonic','blues',
+  'whole tone','octatonic (half\u2013whole)','Phrygian dominant',
+  'Lydian dominant','altered','harmonic major','bebop dominant','chromatic'
+];
+const TASKS=[
+  'Hands together, two octaves, up and down.',
+  'Hands together, four octaves. Keep the turn at the top even.',
+  'Contrary motion from the tonic.',
+  'In thirds. Then in sixths, if the thirds were clean.',
+  'In tenths, hands apart, slowly.',
+  'Triads up the scale, root position, hands together.',
+  'Seventh chords up the scale. Name each one out loud.',
+  'Arpeggios through every inversion.',
+  'ii\u2013V\u2013I in this key, then take it round the circle.',
+  'I\u2013IV\u2013I\u2076\u2074\u2013V\u2013I. Voice it so the top line barely moves.',
+  'Improvise eight bars using nothing outside this scale.',
+  'Improvise, and resolve every phrase onto the third.',
+  'Play it once, then find it again without looking at your hands.',
+  'Sight-read something in this key. Anything.',
+  'Take a tune you already know and transpose it here.',
+  'Play it as slowly as you can bear, and listen to each note die.',
+  'Hold the tonic as a drone in one hand, play the scale in the other.',
+  'Comp a groove on it for two minutes. No melody.',
+  'Find every place this scale sits under your hand without a shift.',
+  'Play it, then write down what it made you think of.'
+];
+const TWISTS=[
+  'Eyes closed.','Left hand alone.','Metronome on 2 and 4 only.',
+  'Half the tempo you first thought of.','Staccato going up, legato coming down.',
+  'Accent every third note.','Start from the fifth, not the root.',
+  'Backwards, from the top note down.','As quietly as the instrument will let you.',
+  'Without looking at your hands.','One dynamic the whole way through.',
+  null,null,null   /* often no constraint at all: three in seven cards */
+];
+let lastKey=null,lastScale=null;
+const notTwice=(list,last)=>{ let v=pick(list,1)[0];
+  if(list.length>1&&v===last) v=pick(list.filter(x=>x!==last),1)[0];
+  return v; };
+function modePractise(){
+  const f=document.getElementById('focus');
+  const k=notTwice(KEYS,lastKey), sc=notTwice(SCALES,lastScale);
+  lastKey=k; lastScale=sc;
+  focusCur=null;                       /* nothing here is pinnable: it is not a word */
+  const tw=pick(TWISTS,1)[0];
+  f.hidden=false;
+  f.innerHTML='<p class="cat">practise</p>'+
+    '<p class="big">'+esc(k+' '+sc)+'</p>'+
+    '<p class="task">'+esc(pick(TASKS,1)[0])+'</p>'+
+    (tw? '<p class="twist"><b>and</b>'+esc(tw)+'</p>' : '')+
+    '<div class="row"><button data-f="practise">Another</button>'+
+    '<button data-f="close">Close</button></div>'+
+    '<p class="cat" style="opacity:.6">N another &nbsp; Esc close</p>';
+}
 function modeFocus(){
   const f=document.getElementById('focus'), d=pick(deckItems(PAL),1)[0]; if(!d)return;
   focusCur=d.n; f.hidden=false;
@@ -379,6 +447,7 @@ function modeFocus(){
 document.addEventListener('click',e=>{
   const b=e.target.closest('#focus button'); if(!b)return;
   if(b.dataset.f==='next') modeFocus();
+  else if(b.dataset.f==='practise') modePractise();
   else if(b.dataset.f==='pin'){ togglePin(focusCur); modeFocus(); }
   else document.getElementById('focus').hidden=true;
 });
@@ -387,14 +456,16 @@ document.addEventListener('click',e=>{
   const m=b.dataset.m;
   if(m==='roll')modeRoll(); else if(m==='collide')modeCollide();
   else if(m==='brief')modeBrief(); else if(m==='focus')modeFocus();
+  else if(m==='practise')modePractise();
   else { shuf=!shuf; b.textContent=shuf?'Unshuffle':'Shuffle'; render(); }
 });
 addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT')return;
   const f=document.getElementById('focus');
   if(e.key==='Escape'){ f.hidden=true; hide(); }
-  else if(!f.hidden&&/^[nN]$/.test(e.key)) modeFocus();
-  else if(!f.hidden&&/^[pP]$/.test(e.key)){ togglePin(focusCur); modeFocus(); }
+  else if(!f.hidden&&/^[nN]$/.test(e.key)) (f.querySelector('[data-f="practise"]')? modePractise() : modeFocus());
+  else if(!f.hidden&&focusCur&&/^[pP]$/.test(e.key)){ togglePin(focusCur); modeFocus(); }
+  else if(f.hidden&&/^[tT]$/.test(e.key)) modePractise();
   else if(/^[rR]$/.test(e.key)) modeRoll();
   else if(/^[bB]$/.test(e.key)) modeBrief();
 });

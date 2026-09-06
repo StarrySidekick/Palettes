@@ -111,6 +111,11 @@ Genres 298).
 
 Almost all content edits happen in **`src/pal2.py`**, then `python3 build.py`.
 
+**The practice deck is the exception.** Its keys, scales, tasks and twists are
+hand-authored lists near `modePractise()` in `src/template.html`, not in
+`pal2.py`, because they are not a word deck — nothing looks them up, nothing
+pins them, and they are read as sentences rather than browsed as a list.
+
 Each deck is `P['id'] = (name, blurb, categories_dict, flat_list)`.
 Use `categories_dict` OR `flat_list` — the other is `None`.
 
