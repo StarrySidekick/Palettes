@@ -1,5 +1,11 @@
 # Palettes — handoff to Claude Code
 
+> **Read [`INTENT.md`](INTENT.md) first.** It records what this project is for
+> and what Timothy wants next, in his own words, dated. Where it disagrees with
+> this file about *direction* it is newer and wins; where it disagrees about
+> *mechanics* — how the code works, what was decided deliberately, the
+> invariants — this file wins.
+
 A single-page music brainstorming tool: eight switchable decks of words and instruments,
 each of which explains itself on hover by calling Wikipedia / Wiktionary from the
 viewer's browser. Built in a Cowork session; this bundle is everything needed to host it
@@ -104,6 +110,11 @@ Genres 298).
 ## 4. Editing content
 
 Almost all content edits happen in **`src/pal2.py`**, then `python3 build.py`.
+
+**The practice deck is the exception.** Its keys, scales, tasks and twists are
+hand-authored lists near `modePractise()` in `src/template.html`, not in
+`pal2.py`, because they are not a word deck — nothing looks them up, nothing
+pins them, and they are read as sentences rather than browsed as a list.
 
 Each deck is `P['id'] = (name, blurb, categories_dict, flat_list)`.
 Use `categories_dict` OR `flat_list` — the other is `None`.
